@@ -7,6 +7,9 @@ load_dotenv()
 URI = os.getenv("NEO4J_URI")
 AUTH = (os.getenv("NEO4J_USER"), os.getenv("NEO4J_PASSWORD"))
 
+if not URI or not AUTH[0] or not AUTH[1]:
+    raise SystemExit("Erreur : variables manquantes. Copier .env.example en .env et le remplir.")
+
 driver = GraphDatabase.driver(URI, auth=AUTH)
 
 
