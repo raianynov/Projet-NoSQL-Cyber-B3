@@ -282,4 +282,4 @@ MATCH (l:LoginLog {id: "log-005"}), (u:User {name: "eve"})     CREATE (l)-[:LOGI
 | Types de relations | 21 |
 | Total de relations | 89 |
 
-> Le script Cypher complet est disponible dans le fichier [`creation_graphe.cypher`](creation_graphe.cypher). Une version Python automatisée (bonus) est disponible dans [`projetnosql.py`](projetnosql.py).
+> Le script Cypher complet est disponible dans le fichier [`creation_graphe.cypher`](creation_graphe.cypher). Une version Python automatisée (bonus) est disponible dans [`projetnosql.py`](../projetnosql.py).
