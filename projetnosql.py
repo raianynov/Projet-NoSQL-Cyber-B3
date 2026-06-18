@@ -1,26 +1,26 @@
 from neo4j import GraphDatabase
 
-
-URI = "neo4j+s://815ec735.databases.neo4j.io"  
-AUTH = ("815ec735", "E5alzUXFiQgy8gYzTLJPcZ0W6pRzwztDBpyxw6q7Has")            
+URI = "neo4j+s://xxxxxxxx.databases.neo4j.io"
+AUTH = ("neo4j", "TON-MOT-DE-PASSE")
 
 driver = GraphDatabase.driver(URI, auth=AUTH)
 
+
 users = [
-    {"name": "alice",   "role": "RH"},
-    {"name": "bob",     "role": "Developpeur"},
-    {"name": "charlie", "role": "Admin Systeme"},
-    {"name": "diana",   "role": "RSSI"},
-    {"name": "eve",     "role": "Stagiaire"},
+    {"name": "alice",   "role": "RH",            "privilege": "standard"},
+    {"name": "bob",     "role": "Developpeur",   "privilege": "standard"},
+    {"name": "charlie", "role": "Admin Systeme", "privilege": "admin"},
+    {"name": "diana",   "role": "RSSI",          "privilege": "admin"},
+    {"name": "eve",     "role": "Stagiaire",     "privilege": "standard"},
 ]
 
 machines = [
-    {"name": "PC-ALICE",   "type": "workstation",       "criticality": "low"},
-    {"name": "PC-BOB",     "type": "workstation",       "criticality": "medium"},
-    {"name": "SRV-WEB",    "type": "server",            "criticality": "medium"},
-    {"name": "SRV-DB",     "type": "database",          "criticality": "high"},
-    {"name": "DC-01",      "type": "domain_controller", "criticality": "critical"},
-    {"name": "NAS-BACKUP", "type": "backup_server",     "criticality": "critical"},
+    {"name": "PC-ALICE",   "type": "workstation",       "criticality": "low",      "last_patch_date": "2025-01-15"},
+    {"name": "PC-BOB",     "type": "workstation",       "criticality": "medium",   "last_patch_date": "2024-11-03"},
+    {"name": "SRV-WEB",    "type": "server",            "criticality": "medium",   "last_patch_date": "2024-08-20"},
+    {"name": "SRV-DB",     "type": "database",          "criticality": "high",     "last_patch_date": "2025-02-10"},
+    {"name": "DC-01",      "type": "domain_controller", "criticality": "critical", "last_patch_date": "2024-06-01"},
+    {"name": "NAS-BACKUP", "type": "backup_server",     "criticality": "critical", "last_patch_date": "2024-09-12"},
 ]
 
 services = [
@@ -33,11 +33,11 @@ services = [
 ]
 
 vulnerabilities = [
-    {"cve": "CVE-2021-44228", "name": "Log4Shell",            "score": 10.0, "description": "Execution de code a distance via Log4j"},
-    {"cve": "CVE-2020-1472",  "name": "Zerologon",            "score": 10.0, "description": "Elevation de privileges sur controleur de domaine"},
-    {"cve": "CVE-2019-0708",  "name": "BlueKeep",             "score": 9.8,  "description": "Execution de code a distance via RDP"},
-    {"cve": "CVE-2022-22965", "name": "Spring4Shell",         "score": 9.8,  "description": "Execution de code a distance sur application Spring"},
-    {"cve": "CVE-2023-0001",  "name": "SMB Misconfiguration", "score": 7.5,  "description": "Mauvaise configuration du partage SMB"},
+    {"cve": "CVE-2021-44228", "name": "Log4Shell",            "score": 10.0, "patch_status": "non corrige", "description": "Execution de code a distance via Log4j"},
+    {"cve": "CVE-2020-1472",  "name": "Zerologon",            "score": 10.0, "patch_status": "non corrige", "description": "Elevation de privileges sur controleur de domaine"},
+    {"cve": "CVE-2019-0708",  "name": "BlueKeep",             "score": 9.8,  "patch_status": "corrige",     "description": "Execution de code a distance via RDP"},
+    {"cve": "CVE-2022-22965", "name": "Spring4Shell",         "score": 9.8,  "patch_status": "non corrige", "description": "Execution de code a distance sur application Spring"},
+    {"cve": "CVE-2023-0001",  "name": "SMB Misconfiguration", "score": 7.5,  "patch_status": "en cours",    "description": "Mauvaise configuration du partage SMB"},
 ]
 
 groups = [
@@ -55,115 +55,231 @@ resources = [
     {"name": "Secrets applicatifs", "sensitivity": "critical"},
 ]
 
+vlans = [
+    {"name": "VLAN-USERS", "vlan_id": 10, "zone": "utilisateurs"},
+    {"name": "VLAN-DMZ",   "vlan_id": 20, "zone": "dmz"},
+    {"name": "VLAN-DB",    "vlan_id": 30, "zone": "donnees"},
+    {"name": "VLAN-ADMIN", "vlan_id": 40, "zone": "administration"},
+]
 
-rel_uses = [          
+firewalls = [
+    {"name": "FW-PERIMETER", "type": "perimetre"},
+    {"name": "FW-INTERNAL",  "type": "interne"},
+]
+
+service_accounts = [
+    {"name": "svc-web",    "description": "compte de service application web"},
+    {"name": "svc-backup", "description": "compte de service sauvegarde"},
+    {"name": "svc-sql",    "description": "compte de service base de donnees"},
+]
+
+ad_rights = [
+    {"name": "DCSync",          "level": "critical", "description": "replication des secrets du domaine"},
+    {"name": "GenericAll",      "level": "critical", "description": "controle total sur un objet AD"},
+    {"name": "ResetPassword",   "level": "high",     "description": "reinitialisation de mot de passe"},
+]
+
+vpn_accesses = [
+    {"name": "VPN-NOMADE",  "type": "acces distant collaborateurs"},
+    {"name": "VPN-ADMIN",   "type": "acces distant administrateurs"},
+]
+
+internet = [
+    {"name": "INTERNET", "zone": "externe"},
+]
+
+privilege_levels = [
+    {"name": "standard", "rank": 1},
+    {"name": "admin",    "rank": 3},
+    {"name": "domain_admin", "rank": 5},
+]
+
+login_logs = [
+    {"id": "log-001", "machine": "PC-ALICE", "user": "alice",   "status": "success", "failed_attempts": 0,  "timestamp": "2025-06-01T08:12:00"},
+    {"id": "log-002", "machine": "PC-ALICE", "user": "eve",     "status": "failed",  "failed_attempts": 5,  "timestamp": "2025-06-01T09:47:00"},
+    {"id": "log-003", "machine": "SRV-WEB",  "user": "svc-web", "status": "success", "failed_attempts": 0,  "timestamp": "2025-06-01T10:03:00"},
+    {"id": "log-004", "machine": "DC-01",    "user": "charlie", "status": "success", "failed_attempts": 0,  "timestamp": "2025-06-01T11:25:00"},
+    {"id": "log-005", "machine": "DC-01",    "user": "eve",     "status": "failed",  "failed_attempts": 12, "timestamp": "2025-06-01T23:58:00"},
+]
+
+
+rel_uses = [
     ("alice", "PC-ALICE"), ("bob", "PC-BOB"), ("charlie", "DC-01"),
     ("diana", "PC-BOB"), ("eve", "PC-ALICE"),
 ]
 
-rel_member_of = [     
+rel_member_of = [
     ("alice", "RH"), ("bob", "DEV"), ("charlie", "ADMINS"),
     ("diana", "SECURITY"), ("eve", "DEV"),
 ]
 
-rel_admin_of = [     
+rel_admin_of = [
     ("charlie", "DC-01"), ("charlie", "NAS-BACKUP"), ("charlie", "SRV-DB"),
 ]
 
-rel_connected_to = [  
+rel_connected_to = [
     ("PC-ALICE", "SRV-WEB"), ("PC-BOB", "SRV-WEB"), ("SRV-WEB", "SRV-DB"),
     ("SRV-DB", "DC-01"), ("SRV-DB", "NAS-BACKUP"), ("PC-ALICE", "PC-BOB"),
 ]
 
-rel_exposes = [       
+rel_exposes = [
     ("SRV-WEB", "HTTP"), ("SRV-WEB", "HTTPS"), ("SRV-DB", "MongoDB"),
     ("DC-01", "SMB"), ("PC-BOB", "RDP"), ("NAS-BACKUP", "SMB"),
 ]
 
-rel_has_vuln = [      
+rel_has_vuln = [
     ("SRV-WEB", "CVE-2021-44228"), ("SRV-WEB", "CVE-2022-22965"),
     ("PC-BOB", "CVE-2019-0708"), ("DC-01", "CVE-2020-1472"),
     ("NAS-BACKUP", "CVE-2023-0001"),
 ]
 
-rel_has_access = [  
+rel_has_access = [
     ("RH", "SRV-WEB"), ("DEV", "SRV-DB"),
     ("ADMINS", "DC-01"), ("ADMINS", "NAS-BACKUP"),
 ]
 
-rel_hosts = [         
+rel_hosts = [
     ("SRV-DB", "Base clients"), ("SRV-DB", "Secrets applicatifs"),
     ("DC-01", "Active Directory"), ("NAS-BACKUP", "Sauvegardes"),
     ("SRV-WEB", "Donnees RH"),
 ]
 
+rel_in_vlan = [
+    ("PC-ALICE", "VLAN-USERS"), ("PC-BOB", "VLAN-USERS"),
+    ("SRV-WEB", "VLAN-DMZ"),
+    ("SRV-DB", "VLAN-DB"),
+    ("DC-01", "VLAN-ADMIN"), ("NAS-BACKUP", "VLAN-ADMIN"),
+]
+
+rel_fw_protects = [
+    ("FW-PERIMETER", "VLAN-DMZ"),
+    ("FW-INTERNAL", "VLAN-USERS"), ("FW-INTERNAL", "VLAN-DB"), ("FW-INTERNAL", "VLAN-ADMIN"),
+]
+
+rel_vlan_allowed = [
+    ("VLAN-USERS", "VLAN-DMZ"),
+    ("VLAN-DMZ", "VLAN-DB"),
+    ("VLAN-ADMIN", "VLAN-DB"), ("VLAN-ADMIN", "VLAN-ADMIN"),
+]
+
+rel_runs_as = [
+    ("SRV-WEB", "svc-web"), ("NAS-BACKUP", "svc-backup"), ("SRV-DB", "svc-sql"),
+]
+
+rel_has_ad_right = [
+    ("svc-web", "ResetPassword"),
+    ("charlie", "DCSync"), ("charlie", "GenericAll"),
+    ("eve", "ResetPassword"),
+]
+
+rel_ad_right_on = [
+    ("DCSync", "Active Directory"), ("GenericAll", "Active Directory"),
+    ("ResetPassword", "Active Directory"),
+]
+
+rel_vpn_grants = [
+    ("VPN-NOMADE", "VLAN-USERS"),
+    ("VPN-ADMIN", "VLAN-ADMIN"),
+]
+
+rel_vpn_used_by = [
+    ("alice", "VPN-NOMADE"), ("eve", "VPN-NOMADE"),
+    ("charlie", "VPN-ADMIN"), ("diana", "VPN-ADMIN"),
+]
+
+rel_exposed_internet = [
+    ("SRV-WEB", "INTERNET"),
+    ("VPN-NOMADE", "INTERNET"), ("VPN-ADMIN", "INTERNET"),
+]
+
+rel_has_privilege = [
+    ("alice", "standard"), ("bob", "standard"), ("eve", "standard"),
+    ("charlie", "admin"), ("diana", "admin"),
+]
+
+rel_depends_on = [
+    ("SRV-WEB", "SRV-DB"),
+    ("SRV-DB", "DC-01"),
+    ("NAS-BACKUP", "DC-01"),
+]
+
+rel_login_on = [
+    ("log-001", "PC-ALICE"), ("log-002", "PC-ALICE"), ("log-003", "SRV-WEB"),
+    ("log-004", "DC-01"), ("log-005", "DC-01"),
+]
+
+rel_login_by = [
+    ("log-001", "alice"), ("log-002", "eve"),
+    ("log-004", "charlie"), ("log-005", "eve"),
+]
+
 
 def reset_db(tx):
-    """Vide entierement la base pour repartir propre."""
     tx.run("MATCH (n) DETACH DELETE n")
 
 
 def create_constraints(tx):
-    """Contraintes d'unicite : evite les doublons et accelere les MATCH."""
     tx.run("CREATE CONSTRAINT user_name IF NOT EXISTS FOR (u:User) REQUIRE u.name IS UNIQUE")
     tx.run("CREATE CONSTRAINT machine_name IF NOT EXISTS FOR (m:Machine) REQUIRE m.name IS UNIQUE")
     tx.run("CREATE CONSTRAINT service_name IF NOT EXISTS FOR (s:Service) REQUIRE s.name IS UNIQUE")
     tx.run("CREATE CONSTRAINT vuln_cve IF NOT EXISTS FOR (v:Vulnerability) REQUIRE v.cve IS UNIQUE")
     tx.run("CREATE CONSTRAINT group_name IF NOT EXISTS FOR (g:Group) REQUIRE g.name IS UNIQUE")
     tx.run("CREATE CONSTRAINT resource_name IF NOT EXISTS FOR (r:Resource) REQUIRE r.name IS UNIQUE")
+    tx.run("CREATE CONSTRAINT vlan_name IF NOT EXISTS FOR (v:VLAN) REQUIRE v.name IS UNIQUE")
+    tx.run("CREATE CONSTRAINT firewall_name IF NOT EXISTS FOR (f:Firewall) REQUIRE f.name IS UNIQUE")
+    tx.run("CREATE CONSTRAINT svcacct_name IF NOT EXISTS FOR (s:ServiceAccount) REQUIRE s.name IS UNIQUE")
+    tx.run("CREATE CONSTRAINT adright_name IF NOT EXISTS FOR (a:ADRight) REQUIRE a.name IS UNIQUE")
+    tx.run("CREATE CONSTRAINT vpn_name IF NOT EXISTS FOR (v:VPNAccess) REQUIRE v.name IS UNIQUE")
+    tx.run("CREATE CONSTRAINT internet_name IF NOT EXISTS FOR (i:Internet) REQUIRE i.name IS UNIQUE")
+    tx.run("CREATE CONSTRAINT priv_name IF NOT EXISTS FOR (p:PrivilegeLevel) REQUIRE p.name IS UNIQUE")
+    tx.run("CREATE CONSTRAINT log_id IF NOT EXISTS FOR (l:LoginLog) REQUIRE l.id IS UNIQUE")
 
 
 def create_nodes(tx):
-    """Cree tous les noeuds via UNWIND (une requete par type de noeud)."""
-    tx.run("UNWIND $rows AS row CREATE (:User {name: row.name, role: row.role})", rows=users)
-    tx.run("UNWIND $rows AS row CREATE (:Machine {name: row.name, type: row.type, criticality: row.criticality})", rows=machines)
+    tx.run("UNWIND $rows AS row CREATE (:User {name: row.name, role: row.role, privilege: row.privilege})", rows=users)
+    tx.run("UNWIND $rows AS row CREATE (:Machine {name: row.name, type: row.type, criticality: row.criticality, last_patch_date: row.last_patch_date})", rows=machines)
     tx.run("UNWIND $rows AS row CREATE (:Service {name: row.name, port: row.port})", rows=services)
-    tx.run("UNWIND $rows AS row CREATE (:Vulnerability {cve: row.cve, name: row.name, score: row.score, description: row.description})", rows=vulnerabilities)
+    tx.run("UNWIND $rows AS row CREATE (:Vulnerability {cve: row.cve, name: row.name, score: row.score, patch_status: row.patch_status, description: row.description})", rows=vulnerabilities)
     tx.run("UNWIND $rows AS row CREATE (:Group {name: row.name})", rows=groups)
     tx.run("UNWIND $rows AS row CREATE (:Resource {name: row.name, sensitivity: row.sensitivity})", rows=resources)
+    tx.run("UNWIND $rows AS row CREATE (:VLAN {name: row.name, vlan_id: row.vlan_id, zone: row.zone})", rows=vlans)
+    tx.run("UNWIND $rows AS row CREATE (:Firewall {name: row.name, type: row.type})", rows=firewalls)
+    tx.run("UNWIND $rows AS row CREATE (:ServiceAccount {name: row.name, description: row.description})", rows=service_accounts)
+    tx.run("UNWIND $rows AS row CREATE (:ADRight {name: row.name, level: row.level, description: row.description})", rows=ad_rights)
+    tx.run("UNWIND $rows AS row CREATE (:VPNAccess {name: row.name, type: row.type})", rows=vpn_accesses)
+    tx.run("UNWIND $rows AS row CREATE (:Internet {name: row.name, zone: row.zone})", rows=internet)
+    tx.run("UNWIND $rows AS row CREATE (:PrivilegeLevel {name: row.name, rank: row.rank})", rows=privilege_levels)
+    tx.run("UNWIND $rows AS row CREATE (:LoginLog {id: row.id, status: row.status, failed_attempts: row.failed_attempts, timestamp: row.timestamp})", rows=login_logs)
 
 
 def create_relationships(tx):
-    """Cree toutes les relations via UNWIND (une requete par type de relation)."""
-   
     def pairs(data):
         return [{"a": a, "b": b} for a, b in data]
 
-    tx.run("""UNWIND $rows AS r
-              MATCH (u:User {name:r.a}),(m:Machine {name:r.b})
-              CREATE (u)-[:USES]->(m)""", rows=pairs(rel_uses))
-
-    tx.run("""UNWIND $rows AS r
-              MATCH (u:User {name:r.a}),(g:Group {name:r.b})
-              CREATE (u)-[:MEMBER_OF]->(g)""", rows=pairs(rel_member_of))
-
-    tx.run("""UNWIND $rows AS r
-              MATCH (u:User {name:r.a}),(m:Machine {name:r.b})
-              CREATE (u)-[:ADMIN_OF]->(m)""", rows=pairs(rel_admin_of))
-
-    tx.run("""UNWIND $rows AS r
-              MATCH (a:Machine {name:r.a}),(b:Machine {name:r.b})
-              CREATE (a)-[:CONNECTED_TO]->(b)""", rows=pairs(rel_connected_to))
-
-    tx.run("""UNWIND $rows AS r
-              MATCH (m:Machine {name:r.a}),(s:Service {name:r.b})
-              CREATE (m)-[:EXPOSES]->(s)""", rows=pairs(rel_exposes))
-
-    tx.run("""UNWIND $rows AS r
-              MATCH (m:Machine {name:r.a}),(v:Vulnerability {cve:r.b})
-              CREATE (m)-[:HAS_VULNERABILITY]->(v)""", rows=pairs(rel_has_vuln))
-
-    tx.run("""UNWIND $rows AS r
-              MATCH (g:Group {name:r.a}),(m:Machine {name:r.b})
-              CREATE (g)-[:HAS_ACCESS_TO]->(m)""", rows=pairs(rel_has_access))
-
-    tx.run("""UNWIND $rows AS r
-              MATCH (m:Machine {name:r.a}),(res:Resource {name:r.b})
-              CREATE (m)-[:HOSTS]->(res)""", rows=pairs(rel_hosts))
+    tx.run("UNWIND $rows AS r MATCH (u:User {name:r.a}),(m:Machine {name:r.b}) CREATE (u)-[:USES]->(m)", rows=pairs(rel_uses))
+    tx.run("UNWIND $rows AS r MATCH (u:User {name:r.a}),(g:Group {name:r.b}) CREATE (u)-[:MEMBER_OF]->(g)", rows=pairs(rel_member_of))
+    tx.run("UNWIND $rows AS r MATCH (u:User {name:r.a}),(m:Machine {name:r.b}) CREATE (u)-[:ADMIN_OF]->(m)", rows=pairs(rel_admin_of))
+    tx.run("UNWIND $rows AS r MATCH (a:Machine {name:r.a}),(b:Machine {name:r.b}) CREATE (a)-[:CONNECTED_TO]->(b)", rows=pairs(rel_connected_to))
+    tx.run("UNWIND $rows AS r MATCH (m:Machine {name:r.a}),(s:Service {name:r.b}) CREATE (m)-[:EXPOSES]->(s)", rows=pairs(rel_exposes))
+    tx.run("UNWIND $rows AS r MATCH (m:Machine {name:r.a}),(v:Vulnerability {cve:r.b}) CREATE (m)-[:HAS_VULNERABILITY]->(v)", rows=pairs(rel_has_vuln))
+    tx.run("UNWIND $rows AS r MATCH (g:Group {name:r.a}),(m:Machine {name:r.b}) CREATE (g)-[:HAS_ACCESS_TO]->(m)", rows=pairs(rel_has_access))
+    tx.run("UNWIND $rows AS r MATCH (m:Machine {name:r.a}),(res:Resource {name:r.b}) CREATE (m)-[:HOSTS]->(res)", rows=pairs(rel_hosts))
+    tx.run("UNWIND $rows AS r MATCH (m:Machine {name:r.a}),(v:VLAN {name:r.b}) CREATE (m)-[:IN_VLAN]->(v)", rows=pairs(rel_in_vlan))
+    tx.run("UNWIND $rows AS r MATCH (f:Firewall {name:r.a}),(v:VLAN {name:r.b}) CREATE (f)-[:PROTECTS]->(v)", rows=pairs(rel_fw_protects))
+    tx.run("UNWIND $rows AS r MATCH (a:VLAN {name:r.a}),(b:VLAN {name:r.b}) CREATE (a)-[:ALLOWED_TO]->(b)", rows=pairs(rel_vlan_allowed))
+    tx.run("UNWIND $rows AS r MATCH (m:Machine {name:r.a}),(s:ServiceAccount {name:r.b}) CREATE (m)-[:RUNS_AS]->(s)", rows=pairs(rel_runs_as))
+    tx.run("UNWIND $rows AS r MATCH (n {name:r.a}),(a:ADRight {name:r.b}) CREATE (n)-[:HAS_AD_RIGHT]->(a)", rows=pairs(rel_has_ad_right))
+    tx.run("UNWIND $rows AS r MATCH (a:ADRight {name:r.a}),(res:Resource {name:r.b}) CREATE (a)-[:AD_RIGHT_ON]->(res)", rows=pairs(rel_ad_right_on))
+    tx.run("UNWIND $rows AS r MATCH (v:VPNAccess {name:r.a}),(vl:VLAN {name:r.b}) CREATE (v)-[:GRANTS_ACCESS_TO]->(vl)", rows=pairs(rel_vpn_grants))
+    tx.run("UNWIND $rows AS r MATCH (u:User {name:r.a}),(v:VPNAccess {name:r.b}) CREATE (u)-[:USES_VPN]->(v)", rows=pairs(rel_vpn_used_by))
+    tx.run("UNWIND $rows AS r MATCH (n {name:r.a}),(i:Internet {name:r.b}) CREATE (n)-[:EXPOSED_TO_INTERNET]->(i)", rows=pairs(rel_exposed_internet))
+    tx.run("UNWIND $rows AS r MATCH (u:User {name:r.a}),(p:PrivilegeLevel {name:r.b}) CREATE (u)-[:HAS_PRIVILEGE]->(p)", rows=pairs(rel_has_privilege))
+    tx.run("UNWIND $rows AS r MATCH (a:Machine {name:r.a}),(b:Machine {name:r.b}) CREATE (a)-[:DEPENDS_ON]->(b)", rows=pairs(rel_depends_on))
+    tx.run("UNWIND $rows AS r MATCH (l:LoginLog {id:r.a}),(m:Machine {name:r.b}) CREATE (l)-[:LOGIN_ON]->(m)", rows=pairs(rel_login_on))
+    tx.run("UNWIND $rows AS r MATCH (l:LoginLog {id:r.a}),(u:User {name:r.b}) CREATE (l)-[:LOGIN_BY]->(u)", rows=pairs(rel_login_by))
 
 
 def compute_risk_scores(tx):
-    """BONUS : calcule un score de risque par machine et le stocke."""
     tx.run("""
         MATCH (m:Machine)
         OPTIONAL MATCH (m)-[:HAS_VULNERABILITY]->(v:Vulnerability)
@@ -192,9 +308,7 @@ def paths_to_critical_machines(tx):
     result = tx.run("""
         MATCH path = (start:Machine {name: "PC-ALICE"})-[:CONNECTED_TO*1..5]->(t:Machine)
         WHERE t.criticality = "critical"
-        RETURN t.name AS cible,
-               length(path) AS sauts,
-               [n IN nodes(path) | n.name] AS chemin
+        RETURN t.name AS cible, length(path) AS sauts, [n IN nodes(path) | n.name] AS chemin
         ORDER BY sauts
     """)
     return [(r["cible"], r["sauts"], r["chemin"]) for r in result]
@@ -203,9 +317,7 @@ def paths_to_critical_machines(tx):
 def reachable_resources(tx):
     result = tx.run("""
         MATCH path = (start:Machine {name: "PC-ALICE"})-[:CONNECTED_TO*1..5]->(m:Machine)-[:HOSTS]->(r:Resource)
-        RETURN r.name AS ressource,
-               r.sensitivity AS sensibilite,
-               m.name AS hebergee_sur,
+        RETURN r.name AS ressource, r.sensitivity AS sensibilite, m.name AS hebergee_sur,
                [n IN nodes(path) | n.name] AS chemin
         ORDER BY r.sensitivity DESC
     """)
@@ -215,23 +327,18 @@ def reachable_resources(tx):
 def vulnerable_machines_on_path(tx):
     result = tx.run("""
         MATCH path = (start:Machine {name: "PC-ALICE"})-[:CONNECTED_TO*1..5]->(m:Machine)-[:HAS_VULNERABILITY]->(v:Vulnerability)
-        RETURN DISTINCT m.name AS machine,
-               v.cve AS cve,
-               v.name AS vulnerabilite,
-               v.score AS score
+        RETURN DISTINCT m.name AS machine, v.cve AS cve, v.name AS vulnerabilite,
+               v.score AS score, v.patch_status AS statut
         ORDER BY score DESC
     """)
-    return [(r["machine"], r["cve"], r["vulnerabilite"], r["score"]) for r in result]
+    return [(r["machine"], r["cve"], r["vulnerabilite"], r["score"], r["statut"]) for r in result]
 
 
 def risky_users(tx):
     result = tx.run("""
         MATCH (u:User)-[:MEMBER_OF]->(g:Group)-[:HAS_ACCESS_TO]->(m:Machine)
         WHERE m.criticality IN ["high", "critical"]
-        RETURN u.name AS utilisateur,
-               g.name AS groupe,
-               m.name AS machine,
-               m.criticality AS criticite
+        RETURN u.name AS utilisateur, g.name AS groupe, m.name AS machine, m.criticality AS criticite
         ORDER BY m.criticality DESC
     """)
     return [(r["utilisateur"], r["groupe"], r["machine"], r["criticite"]) for r in result]
@@ -246,6 +353,57 @@ def risk_ranking(tx):
     return [(r["machine"], r["criticite"], r["score"]) for r in result]
 
 
+def segmentation_check(tx):
+    result = tx.run("""
+        MATCH (m1:Machine {name: "PC-ALICE"})-[:IN_VLAN]->(v1:VLAN)
+        MATCH (m2:Machine {name: "SRV-DB"})-[:IN_VLAN]->(v2:VLAN)
+        RETURN v1.name AS vlan_source, v2.name AS vlan_cible,
+               exists((v1)-[:ALLOWED_TO]->(v2)) AS flux_autorise
+    """)
+    r = result.single()
+    return r["vlan_source"], r["vlan_cible"], r["flux_autorise"]
+
+
+def internet_exposed(tx):
+    result = tx.run("""
+        MATCH (n)-[:EXPOSED_TO_INTERNET]->(:Internet)
+        RETURN labels(n)[0] AS type, n.name AS nom
+        ORDER BY type
+    """)
+    return [(r["type"], r["nom"]) for r in result]
+
+
+def brute_force_alerts(tx):
+    result = tx.run("""
+        MATCH (l:LoginLog)-[:LOGIN_ON]->(m:Machine)
+        WHERE l.status = "failed" AND l.failed_attempts >= 5
+        OPTIONAL MATCH (l)-[:LOGIN_BY]->(u:User)
+        RETURN m.name AS machine, u.name AS utilisateur, l.failed_attempts AS tentatives, l.timestamp AS horodatage
+        ORDER BY tentatives DESC
+    """)
+    return [(r["machine"], r["utilisateur"], r["tentatives"], r["horodatage"]) for r in result]
+
+
+def ad_attack_paths(tx):
+    result = tx.run("""
+        MATCH (n)-[:HAS_AD_RIGHT]->(a:ADRight)-[:AD_RIGHT_ON]->(r:Resource)
+        RETURN labels(n)[0] AS type_porteur, n.name AS porteur, a.name AS droit, a.level AS niveau, r.name AS cible
+        ORDER BY a.level DESC
+    """)
+    return [(r["type_porteur"], r["porteur"], r["droit"], r["niveau"], r["cible"]) for r in result]
+
+
+def unpatched_machines(tx):
+    result = tx.run("""
+        MATCH (m:Machine)-[:HAS_VULNERABILITY]->(v:Vulnerability)
+        WHERE v.patch_status <> "corrige"
+        RETURN m.name AS machine, m.last_patch_date AS dernier_patch,
+               collect(v.name + " (" + v.patch_status + ")") AS vulns_ouvertes
+        ORDER BY m.last_patch_date
+    """)
+    return [(r["machine"], r["dernier_patch"], r["vulns_ouvertes"]) for r in result]
+
+
 def ligne(titre):
     print("\n" + "=" * 60)
     print(titre)
@@ -253,8 +411,7 @@ def ligne(titre):
 
 
 with driver.session() as session:
-    
-    print("Construction du graphe CyberCorp...")
+    print("Construction du graphe CyberCorp enrichi...")
     session.execute_write(reset_db)
     session.execute_write(create_constraints)
     session.execute_write(create_nodes)
@@ -274,16 +431,37 @@ with driver.session() as session:
         print(f"     chemin : {' -> '.join(chemin)}")
 
     ligne("MACHINES VULNERABLES SUR LE CHEMIN D'ATTAQUE")
-    for machine, cve, vuln, score in session.execute_read(vulnerable_machines_on_path):
-        print(f"  -> {machine} : {cve} ({vuln}) score {score}")
+    for machine, cve, vuln, score, statut in session.execute_read(vulnerable_machines_on_path):
+        print(f"  -> {machine} : {cve} ({vuln}) score {score} [{statut}]")
 
     ligne("UTILISATEURS / GROUPES A RISQUE")
     for user, groupe, machine, crit in session.execute_read(risky_users):
         print(f"  -> {user} (groupe {groupe}) accede a {machine} [{crit}]")
 
-    ligne("SCORING DE RISQUE PAR MACHINE (BONUS)")
+    ligne("SCORING DE RISQUE PAR MACHINE")
     for machine, crit, score in session.execute_read(risk_ranking):
         print(f"  -> {machine:<12} [{crit:<8}] score de risque = {score}")
 
+    ligne("CONTROLE DE SEGMENTATION : PC-ALICE -> SRV-DB")
+    vlan_src, vlan_cible, autorise = session.execute_read(segmentation_check)
+    verdict = "AUTORISE" if autorise else "BLOQUE par le pare-feu"
+    print(f"  {vlan_src} vers {vlan_cible} : {verdict}")
+
+    ligne("SURFACE D'EXPOSITION INTERNET")
+    for type_n, nom in session.execute_read(internet_exposed):
+        print(f"  -> {type_n} : {nom}")
+
+    ligne("ALERTES BRUTE-FORCE (echecs d'authentification)")
+    for machine, user, tentatives, horodatage in session.execute_read(brute_force_alerts):
+        print(f"  -> {machine} : {tentatives} echecs (compte {user}) le {horodatage}")
+
+    ligne("CHEMINS D'ATTAQUE ACTIVE DIRECTORY")
+    for type_p, porteur, droit, niveau, cible in session.execute_read(ad_attack_paths):
+        print(f"  -> {type_p} '{porteur}' possede {droit} [{niveau}] sur {cible}")
+
+    ligne("MACHINES NON PATCHEES")
+    for machine, patch, vulns in session.execute_read(unpatched_machines):
+        print(f"  -> {machine} (dernier patch {patch}) : {', '.join(vulns)}")
+
 driver.close()
-print("\nTermine. Ouvre AuraDB et lance  MATCH (n) RETURN n;  pour la capture du graphe.")
+print("\nTermine. Ouvre AuraDB et lance  MATCH (n) RETURN n;  pour la capture du graphe enrichi.")
