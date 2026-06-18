@@ -56,42 +56,42 @@ resources = [
 ]
 
 
-rel_uses = [          # User -> Machine
+rel_uses = [          
     ("alice", "PC-ALICE"), ("bob", "PC-BOB"), ("charlie", "DC-01"),
     ("diana", "PC-BOB"), ("eve", "PC-ALICE"),
 ]
 
-rel_member_of = [     # User -> Group
+rel_member_of = [     
     ("alice", "RH"), ("bob", "DEV"), ("charlie", "ADMINS"),
     ("diana", "SECURITY"), ("eve", "DEV"),
 ]
 
-rel_admin_of = [      # User -> Machine
+rel_admin_of = [     
     ("charlie", "DC-01"), ("charlie", "NAS-BACKUP"), ("charlie", "SRV-DB"),
 ]
 
-rel_connected_to = [  # Machine -> Machine  (l'autoroute d'attaque)
+rel_connected_to = [  
     ("PC-ALICE", "SRV-WEB"), ("PC-BOB", "SRV-WEB"), ("SRV-WEB", "SRV-DB"),
     ("SRV-DB", "DC-01"), ("SRV-DB", "NAS-BACKUP"), ("PC-ALICE", "PC-BOB"),
 ]
 
-rel_exposes = [       # Machine -> Service
+rel_exposes = [       
     ("SRV-WEB", "HTTP"), ("SRV-WEB", "HTTPS"), ("SRV-DB", "MongoDB"),
     ("DC-01", "SMB"), ("PC-BOB", "RDP"), ("NAS-BACKUP", "SMB"),
 ]
 
-rel_has_vuln = [      # Machine -> Vulnerability (par CVE)
+rel_has_vuln = [      
     ("SRV-WEB", "CVE-2021-44228"), ("SRV-WEB", "CVE-2022-22965"),
     ("PC-BOB", "CVE-2019-0708"), ("DC-01", "CVE-2020-1472"),
     ("NAS-BACKUP", "CVE-2023-0001"),
 ]
 
-rel_has_access = [    # Group -> Machine
+rel_has_access = [  
     ("RH", "SRV-WEB"), ("DEV", "SRV-DB"),
     ("ADMINS", "DC-01"), ("ADMINS", "NAS-BACKUP"),
 ]
 
-rel_hosts = [         # Machine -> Resource
+rel_hosts = [         
     ("SRV-DB", "Base clients"), ("SRV-DB", "Secrets applicatifs"),
     ("DC-01", "Active Directory"), ("NAS-BACKUP", "Sauvegardes"),
     ("SRV-WEB", "Donnees RH"),
@@ -125,7 +125,7 @@ def create_nodes(tx):
 
 def create_relationships(tx):
     """Cree toutes les relations via UNWIND (une requete par type de relation)."""
-    # On transforme chaque couple en dict {a:..., b:...} pour UNWIND
+   
     def pairs(data):
         return [{"a": a, "b": b} for a, b in data]
 
@@ -253,7 +253,7 @@ def ligne(titre):
 
 
 with driver.session() as session:
-    # --- Construction du graphe ---
+    
     print("Construction du graphe CyberCorp...")
     session.execute_write(reset_db)
     session.execute_write(create_constraints)
