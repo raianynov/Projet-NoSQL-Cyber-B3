@@ -1,0 +1,16 @@
+# Secrets : ne jamais committer le fichier d'identifiants
+.env
+
+# Fichiers temporaires Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environnements virtuels
+venv/
+.venv/
+env/
+
+# Fichiers d'IDE
+.vscode/
+.idea/
